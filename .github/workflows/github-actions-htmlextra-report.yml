@@ -1,0 +1,40 @@
+name: Newman Tests
+on: [push, pull_request]
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout the code
+      - uses: actions/checkout@v2
+      
+      # 2. Install Node.js
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with: 
+          node-version: '16.x'
+
+      # 3. Install Newman and HTML reporter
+      - name: Install newman
+        run: |
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
+          
+      # 4. Create directory for test results
+      - name: Make Directory for results
+        run: mkdir -p testResults
+        
+      # 5. Run Postman collection tests
+      - name: Run API Tests
+        run: |
+          newman run "Restful Booker BVT.postman_collection.json" \
+            -e Production.postman_environment.json \
+            -r htmlextra \
+            --reporter-htmlextra-export testResults/htmlreport.html || true
+
+      # 6. Upload test results as an artifact
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
+        with: 
+          name: API-Test-Reports
+          path: testResults
